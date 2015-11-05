@@ -1,5 +1,4 @@
 from plisp import environment
-from plisp import parser
 
 
 class Type: pass
@@ -7,6 +6,9 @@ class Type: pass
 class Atom(Type):
     def __init__(self, value):
         self.value = value
+
+    def evaluate(self, env):
+        return self
 
     def __str__(self):
         return str(self.value)
@@ -24,9 +26,6 @@ class Number(Atom):
                 self.value = int(value)
             except ValueError:
                 self.value = float(value)
-
-    def evaluate(self, env):
-        return self
 
     def __add__(self, other):
         if type(other) is Number:
@@ -70,7 +69,17 @@ class List(Type):
         self.elements = args
 
     def evaluate(self, env):
-        return self
+        if len(self.elements) == 0:
+            return self
+        sym = self.elements[0]
+        return sym.evaluate(env).apply(self.elements[1:], env)
+
+    def __iter__(self):
+        for e in self.elements:
+            yield e
+
+    def __len__(self):
+        return len(self.elements)
 
     def __str__(self):
         return "(" + ' '.join([str(e) for e in self.elements]) + ")"
@@ -81,7 +90,10 @@ class Symbol(Type):
         self.name = name
 
     def evaluate(self, env):
-        return self
+        res = env.lookup(self)
+        if res is None:
+            raise NameError(str(self) + " not found")
+        return res
 
     def __str__(self):
         return str(self.name)
@@ -104,18 +116,19 @@ class Function(Type):
         self.env = env
         self.expression = expr
 
-    def apply(self, args):
+    def apply(self, args, call_env):
+        env = environment.Environment(base=self.env)
+        if len(args) != len(self.args_list):
+            raise Exception("Arity error")
+        bindings = zip(self.args_list, args)
+        for sym, val in bindings:
+            env.set(sym, val.evaluate(call_env))
+        return self.expression.evaluate(env)
+
+
+class Macro(Function):
+    def apply(self, args, call_env):
         env = environment.Environment(base=self.env)
         for sym, val in zip(self.args_list, args):
             env.set(sym, val)
         return self.expression.evaluate(env)
-
-
-def build_lambda(args, env):
-    if len(args) != 2 or type(args[0]) is not parser.List:
-        raise SyntaxError("lambda must be of form: lambda args expression")
-    for arg in args[0]:
-        if type(arg) is not parser.Symbol:
-            raise SyntaxError("lambda arguments must be symbols")
-    args_list = [Symbol(s.name) for s in args[0]]
-    return Function(args_list, args[1], env)

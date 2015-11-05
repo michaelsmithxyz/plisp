@@ -14,97 +14,6 @@ class PLispTokens(enum.Enum):
     WHITESPACE = 6
 
 
-class Expression:
-    def evaluate(self, env):
-        return None
-    
-    def __repr__(self):
-        return str(self)
-
-
-class Atom(Expression):
-    def __init__(self, value, type):
-        if type == PLispTokens.NUMBER:
-            self.value = types.Number(value)
-        elif type == PLispTokens.STRING:
-            self.value = types.String(value[1:-1])
-        else:
-            raise ValueError("Invalid token type for Atom expression")
-
-    def evaluate(self, env):
-        return self.value
-
-    def __str__(self):
-        return str(self.value)
-
-
-class Symbol(Expression):
-    def __init__(self, name):
-        self.name = name
-
-    def evaluate(self, env):
-        res = env.lookup(types.Symbol(self.name))
-        if res is None:
-            raise NameError(str(self.name) + " not found")
-        return res
-    
-    def __eq__(self, other):
-        if type(other) is Symbol:
-            return self.name == other.name
-        return self.name == other
-
-    def __hash__(self):
-        return hash(self.name)
-
-    def __str__(self):
-        return str(self.name)
-
-
-class List(Expression):
-    def __init__(self, *args):
-        self.elements = args
-
-    def evaluate(self, env):
-        if len(self.elements) == 0:
-            return types.List()
-        sym = self.elements[0]
-        if sym == 'lambda':
-            return types.build_lambda(self.elements[1:], env)
-        elif sym == 'def':
-            res = self.elements[2].evaluate(env)
-            env.set(types.Symbol(self.elements[1]), res)
-            return res
-        return sym.evaluate(env).apply([e.evaluate(env) for e in self.elements[1:]])
-
-    def __iter__(self):
-        for e in self.elements:
-            yield e
-
-    def __str__(self):
-        return str(self.elements)
-
-
-class Quote(Expression):
-    def __init__(self, body):
-        self.body = body
-
-    def evaluate(self, env):
-        if type(self.body) is Atom:
-            return self.body.evaluate(env)
-        elif type(self.body) is Symbol:
-            return types.Symbol(self.body.name)
-        elif type(self.body) is List:
-            return types.List(*[Quote(e).evaluate(env) for e in self.body.elements])
-        else:
-            raise ValueError("Invalid evaluation for quote type")
-
-    def __str__(self):
-        return '#' + str(self.body)
-
-
-class ParseError(Exception): pass
-
-
 class PLispParser:
     tokens = [
         (r'[\n\t ]+', PLispTokens.WHITESPACE),
@@ -113,9 +22,11 @@ class PLispParser:
         (r'[<>=\+\-\*/]', PLispTokens.SYMBOL),
         (r'[A-z]+[_A-z0-9]*', PLispTokens.SYMBOL),
         (r'[0-9]+', PLispTokens.NUMBER),
-        (r'#', PLispTokens.QUOTE),
+        (r'\'', PLispTokens.QUOTE),
         (r'".*"', PLispTokens.STRING)
     ]
+
+    class ParseError(Exception): pass
     
     def __init__(self, string):
         self.string = string
@@ -125,28 +36,32 @@ class PLispParser:
         return self.tokenizer.consume(lambda t: t.type != PLispTokens.WHITESPACE)
 
     def parse_atom(self, token):
-        return Atom(token.value, token.type)
+        if token.type is PLispTokens.NUMBER:
+            return types.Number(token.value)
+        elif token.type is PLispTokens.STRING:
+            return types.String(token.value[1:-1])
+        raise self.ParseError("Unknown atom type")
 
     def parse_symbol(self, token):
-        return Symbol(token.value)
+        return types.Symbol(token.value)
 
     def parse_quote(self, token):
         body = self.parse_expression(self.get_token())
         if body is None:
-            raise ParseError("Invalid body for quote")
-        return Quote(body)
+            raise self.ParseError("Invalid body for quote")
+        return types.List(types.Symbol('quote'), body)
 
     def parse_list(self, token):
         lst = []
         next_token = self.get_token()
         if next_token is None:
-            raise ParseError("Expected end of list before end of input")
+            raise self.ParseError("Expected end of list before end of input")
         while next_token.type != PLispTokens.END_EXPR:
             lst.append(self.parse_expression(next_token))
             next_token = self.get_token()
             if next_token is None:
-                raise ParseError("Expected end of list before end of input")
-        return List(*lst)
+                raise self.ParseError("Expected end of list before end of input")
+        return types.List(*lst)
     
     def parse_expression(self, token):
         if token is None:
@@ -156,13 +71,13 @@ class PLispParser:
         elif token.type == PLispTokens.START_EXPR:
             return self.parse_list(token)
         elif token.type == PLispTokens.END_EXPR:
-            raise ParseError("Unexpected end of list")
+            raise self.ParseError("Unexpected end of list")
         elif token.type == PLispTokens.SYMBOL:
             return self.parse_symbol(token)
         elif token.type == PLispTokens.QUOTE:
             return self.parse_quote(token)
         else:
-            raise ParseError("Internal Error: Unhandled token type encountered: %s" % token)
+            raise self.ParseError("Internal Error: Unhandled token type encountered: %s" % token)
 
     def parse(self):
         exprs = []

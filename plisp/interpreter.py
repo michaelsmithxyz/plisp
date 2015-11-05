@@ -11,7 +11,11 @@ class DefaultEnvironment(environment.Environment):
                 '-': builtins.SubtractFunction(self),
                 '*': builtins.MultiplyFunction(self),
                 '/': builtins.DivisionFunction(self),
+                'type': builtins.TypeFunction(self),
                 'nil': types.List(),
+                'define': builtins.DefineMacro(self),
+                'lambda': builtins.LambdaMacro(self),
+                'quote': builtins.QuoteMacro(self)
             }
 
 
