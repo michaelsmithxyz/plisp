@@ -1,6 +1,7 @@
 from plisp import builtins
 from plisp import environment
 from plisp import parser
+from plisp import types
 
 
 class DefaultEnvironment(environment.Environment): 
@@ -10,6 +11,7 @@ class DefaultEnvironment(environment.Environment):
                 '-': builtins.SubtractFunction(self),
                 '*': builtins.MultiplyFunction(self),
                 '/': builtins.DivisionFunction(self),
+                'nil': types.List(),
             }
 
 
