@@ -16,6 +16,7 @@ class DefaultEnvironment(environment.Environment):
                 'nil': types.List(),
                 'define': builtins.DefineMacro(self),
                 'lambda': builtins.LambdaMacro(self),
+                'fn': builtins.FnMacro(self),
                 'quote': builtins.QuoteMacro(self)
             }
 

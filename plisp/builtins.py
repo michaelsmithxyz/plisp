@@ -88,3 +88,18 @@ class LambdaMacro(types.Macro):
             if type(arg) is not types.Symbol:
                 raise SyntaxError("lambda argument list must be comprised of symbols")
             return types.Function(args[0], args[1], call_env)
+
+
+class FnMacro(types.Macro):
+    def __init__(self, env):
+        self.env = env
+
+    def apply(self, args, call_env):
+        if len(args) != 3 or type(args[0]) is not types.Symbol or type(args[1]) is not types.List:
+            raise SyntaxError("fn must be of form: fn name args expression")
+        for arg in args[1]:
+            if type(arg) is not types.Symbol:
+                raise SyntaxError("fn argument list must be comprised only of symbols")
+        function = types.Function(args[1], args[2], call_env)
+        call_env.set(args[0], function)
+        return function
