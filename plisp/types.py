@@ -1,4 +1,5 @@
 from plisp import environment
+from plisp import parser
 
 
 class Type: pass
@@ -68,6 +69,9 @@ class List(Type):
     def __init__(self, *args):
         self.elements = args
 
+    def evaluate(self, env):
+        return self
+
     def __str__(self):
         return "(" + ' '.join([str(e) for e in self.elements]) + ")"
 
@@ -82,8 +86,16 @@ class Symbol(Type):
     def __str__(self):
         return str(self.name)
 
+    def __repr__(self):
+        return str(self)
+
     def __hash__(self):
         return hash(self.name)
+
+    def __eq__(self, other):
+        if type(other) is Symbol:
+            return self.name == other.name
+        return self.name == other
 
 
 class Function(Type):
@@ -97,3 +109,13 @@ class Function(Type):
         for sym, val in zip(self.args_list, args):
             env.set(sym, val)
         return self.expression.evaluate(env)
+
+
+def build_lambda(args, env):
+    if len(args) != 2 or type(args[0]) is not parser.List:
+        raise SyntaxError("lambda must be of form: lambda args expression")
+    for arg in args[0]:
+        if type(arg) is not parser.Symbol:
+            raise SyntaxError("lambda arguments must be symbols")
+    args_list = [Symbol(s.name) for s in args[0]]
+    return Function(args_list, args[1], env)

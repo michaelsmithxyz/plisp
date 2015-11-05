@@ -43,10 +43,18 @@ class Symbol(Expression):
         self.name = name
 
     def evaluate(self, env):
-        res = env.lookup(self.name)
+        res = env.lookup(types.Symbol(self.name))
         if res is None:
-            raise Exception("Change this: bad symbol lookup")
+            raise NameError(str(self.name) + " not found")
         return res
+    
+    def __eq__(self, other):
+        if type(other) is Symbol:
+            return self.name == other.name
+        return self.name == other
+
+    def __hash__(self):
+        return hash(self.name)
 
     def __str__(self):
         return str(self.name)
@@ -60,7 +68,17 @@ class List(Expression):
         if len(self.elements) == 0:
             return types.List()
         sym = self.elements[0]
+        if sym == 'lambda':
+            return types.build_lambda(self.elements[1:], env)
+        elif sym == 'def':
+            res = self.elements[2].evaluate(env)
+            env.set(types.Symbol(self.elements[1]), res)
+            return res
         return sym.evaluate(env).apply([e.evaluate(env) for e in self.elements[1:]])
+
+    def __iter__(self):
+        for e in self.elements:
+            yield e
 
     def __str__(self):
         return str(self.elements)

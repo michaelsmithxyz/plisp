@@ -27,3 +27,8 @@ class MultiplyFunction(ListReduceBuiltin):
 
 class DivisionFunction(ListReduceBuiltin):
     func = lambda x, y: x / y
+
+
+class LambdaFunction(types.Function):
+    def __init__(self, env):
+        self.env = env

@@ -9,7 +9,7 @@ class DefaultEnvironment(environment.Environment):
                 '+': builtins.AddFunction(self),
                 '-': builtins.SubtractFunction(self),
                 '*': builtins.MultiplyFunction(self),
-                '/': builtins.DivisionFunction(self)
+                '/': builtins.DivisionFunction(self),
             }
 
 
