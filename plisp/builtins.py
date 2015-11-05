@@ -43,6 +43,16 @@ class TypeFunction(types.Function):
         return args[0].evaluate(call_env).__class__
 
 
+class PrintFunction(types.Function):
+    def __init__(self, env):
+        self.env = env
+
+    def apply(self, args, call_env):
+        string = ' '.join([str(a.evaluate(call_env)) for a in args])
+        print(string)
+        return types.List()
+
+
 # Built-in Macros
 
 class DefineMacro(types.Macro):

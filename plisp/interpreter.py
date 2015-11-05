@@ -12,6 +12,7 @@ class DefaultEnvironment(environment.Environment):
                 '*': builtins.MultiplyFunction(self),
                 '/': builtins.DivisionFunction(self),
                 'type': builtins.TypeFunction(self),
+                'print': builtins.PrintFunction(self),
                 'nil': types.List(),
                 'define': builtins.DefineMacro(self),
                 'lambda': builtins.LambdaMacro(self),
