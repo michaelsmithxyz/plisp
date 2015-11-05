@@ -1,12 +1,15 @@
 from plisp.interpreter import PLispInterpreter
 
 if __name__ == '__main__':
-    try:
-        interpreter = PLispInterpreter()
-        while True:
+    interpreter = PLispInterpreter()
+    while True:
+        try:
             line = str(input("> "))
-            interpreter.load_string(line)
+        except (KeyboardInterrupt, EOFError):
+            break
+        interpreter.load_string(line)
+        try:
             res = interpreter.execute()
             print(res)
-    except (KeyboardInterrupt, EOFError):
-        pass
+        except Exception as e:
+            print(str(type(e)) + ": " + str(e))
