@@ -3,20 +3,27 @@ from functools import reduce
 from plisp import types
 from plisp import environment
 
+class ListReduceBuiltin(types.Function):
+    func = lambda x, y: None
 
-class AddFunction(types.Function):
     def __init__(self, env):
         self.env = env
 
     def apply(self, args):
         env = environment.Environment(base=self.env)
-        return reduce(lambda x, y: x + y, [a.evaluate(env) for a in args])
+        return reduce(self.__class__.func, [a.evaluate(env) for a in args])
+
+class AddFunction(ListReduceBuiltin):
+    func = lambda x, y: x + y
+    
+
+class SubtractFunction(ListReduceBuiltin):
+    func = lambda x, y: x - y
 
 
-class SubtractFunction(types.Function):
-    def __init__(self, env):
-        self.env = env
+class MultiplyFunction(ListReduceBuiltin):
+    func = lambda x, y: x * y
 
-    def apply(self, args):
-        env = environment.Environment(base=self.env)
-        return reduce(lambda x, y: x - y, [a.evaluate(env) for a in args])
+
+class DivisionFunction(ListReduceBuiltin):
+    func = lambda x, y: x / y

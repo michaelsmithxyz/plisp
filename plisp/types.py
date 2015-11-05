@@ -16,10 +16,13 @@ class Atom(Type):
 
 class Number(Atom):
     def __init__(self, value):
-        try:
-            self.value = int(value)
-        except ValueError:
-            self.value = float(value)
+        if type(value) in (float, int):
+            self.value = value
+        else:
+            try:
+                self.value = int(value)
+            except ValueError:
+                self.value = float(value)
 
     def evaluate(self, env):
         return self
@@ -43,6 +46,9 @@ class Number(Atom):
         if type(other) is Number:
             return Number(self.value / other.value)
         raise ValueError("Cannot divide a number by a non-number")
+
+    def __truediv__(self, other):
+        return self.__div__(other)
 
     def __cmp__(self, other):
         if type(other) is Number:

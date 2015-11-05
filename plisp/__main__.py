@@ -8,5 +8,5 @@ if __name__ == '__main__':
             interpreter.load_string(line)
             res = interpreter.execute()
             print(res)
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         pass

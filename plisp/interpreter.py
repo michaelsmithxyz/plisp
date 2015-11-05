@@ -6,7 +6,10 @@ from plisp import parser
 class DefaultEnvironment(environment.Environment): 
     def __init__(self):
         self.table = {
-                '+': builtins.AddFunction(self)
+                '+': builtins.AddFunction(self),
+                '-': builtins.SubtractFunction(self),
+                '*': builtins.MultiplyFunction(self),
+                '/': builtins.DivisionFunction(self)
             }
 
 
