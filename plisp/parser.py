@@ -1,25 +1,38 @@
 import enum
 
 import plisp.tokenizer as tokenizer
+from plisp import types
 
 
 class PLispTokens(enum.Enum):
     START_EXPR = 0
     END_EXPR = 1
     SYMBOL = 2
-    ATOM = 3
-    QUOTE = 4
-    WHITESPACE = 5
+    NUMBER = 3
+    STRING = 4
+    QUOTE = 5
+    WHITESPACE = 6
 
 
 class Expression:
+    def evaluate(self, env):
+        return None
+    
     def __repr__(self):
         return str(self)
 
 
 class Atom(Expression):
-    def __init__(self, value):
-        self.value = value
+    def __init__(self, value, type):
+        if type == PLispTokens.NUMBER:
+            self.value = types.Number(value)
+        elif type == PLispTokens.STRING:
+            self.value = types.String(value[1:-1])
+        else:
+            raise ValueError("Invalid token type for Atom expression")
+
+    def evaluate(self, env):
+        return self.value
 
     def __str__(self):
         return str(self.value)
@@ -29,6 +42,12 @@ class Symbol(Expression):
     def __init__(self, name):
         self.name = name
 
+    def evaluate(self, env):
+        res = env.lookup(self.name)
+        if res is None:
+            raise Exception("Change this: bad symbol lookup")
+        return res
+
     def __str__(self):
         return str(self.name)
 
@@ -37,6 +56,12 @@ class List(Expression):
     def __init__(self, *args):
         self.elements = args
 
+    def evaluate(self, env):
+        if len(self.elements) == 0:
+            return types.List()
+        sym = self.elements[0]
+        return sym.evaluate(env).apply([e.evaluate(env) for e in self.elements[1:]])
+
     def __str__(self):
         return str(self.elements)
 
@@ -44,6 +69,16 @@ class List(Expression):
 class Quote(Expression):
     def __init__(self, body):
         self.body = body
+
+    def evaluate(self, env):
+        if type(self.body) is Atom:
+            return self.body.evaluate(env)
+        elif type(self.body) is Symbol:
+            return types.Symbol(self.body.name)
+        elif type(self.body) is List:
+            return types.List(*[Quote(e).evaluate(env) for e in self.body.elements])
+        else:
+            raise ValueError("Invalid evaluation for quote type")
 
     def __str__(self):
         return '#' + str(self.body)
@@ -59,9 +94,9 @@ class PLispParser:
         (r'\)', PLispTokens.END_EXPR),
         (r'[<>=\+\-\*/]', PLispTokens.SYMBOL),
         (r'[A-z]+[_A-z0-9]*', PLispTokens.SYMBOL),
-        (r'[0-9]+', PLispTokens.ATOM),
+        (r'[0-9]+', PLispTokens.NUMBER),
         (r'#', PLispTokens.QUOTE),
-        (r'".*"', PLispTokens.ATOM)
+        (r'".*"', PLispTokens.STRING)
     ]
     
     def __init__(self, string):
@@ -72,7 +107,7 @@ class PLispParser:
         return self.tokenizer.consume(lambda t: t.type != PLispTokens.WHITESPACE)
 
     def parse_atom(self, token):
-        return Atom(token.value)
+        return Atom(token.value, token.type)
 
     def parse_symbol(self, token):
         return Symbol(token.value)
@@ -98,7 +133,7 @@ class PLispParser:
     def parse_expression(self, token):
         if token is None:
             return None
-        elif token.type == PLispTokens.ATOM:
+        elif token.type == PLispTokens.NUMBER or token.type == PLispTokens.STRING:
             return self.parse_atom(token)
         elif token.type == PLispTokens.START_EXPR:
             return self.parse_list(token)
