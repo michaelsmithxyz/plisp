@@ -20,7 +20,7 @@ def repl(interpreter):
         except Exception as e:
             print(str(type(e)) + ": " + str(e), file=sys.stderr)
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     setup_args(parser)
     args = parser.parse_args()
@@ -42,4 +42,6 @@ if __name__ == '__main__':
     else:
         repl(interpreter)
 
-    
+
+if __name__ == '__main__':
+    main()
