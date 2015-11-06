@@ -25,7 +25,7 @@ class Tokenizer:
         for regex, tok_type in self.tokens:
             match = re.match(regex, self.string[self.pos:])
             if match is not None:
-                value = match.group()
+                value = match.group(0)
                 return Token(tok_type, value)
         return None
 

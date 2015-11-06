@@ -11,7 +11,6 @@ class ListReduceBuiltin(types.Function):
         self.env = env
 
     def apply(self, args, call_env):
-        env = environment.Environment(base=self.env)
         return reduce(self.__class__.func, [a.evaluate(call_env) for a in args])
 
 
@@ -31,6 +30,17 @@ class MultiplyFunction(ListReduceBuiltin):
 
 class DivisionFunction(ListReduceBuiltin):
     func = lambda x, y: x / y
+
+
+class EqualityFunction(types.Function):
+    def __init__(self, env):
+        self.env = env
+
+    def apply(self, args, call_env):
+        if len(args) != 2:
+            raise Exception("Arity error")
+        return types.Boolean(args[0] == args[1])
+
 
 
 class TypeFunction(types.Function):
@@ -103,3 +113,17 @@ class FnMacro(types.Macro):
         function = types.Function(args[1], args[2], call_env)
         call_env.set(args[0], function)
         return function
+
+
+class IfMacro(types.Macro):
+    def __init__(self, env):
+        self.env = env
+
+    def apply(self, args, call_env):
+        if len(args) != 3:
+            raise SyntaxError("if must be of form: if test then else")
+        test = types.Boolean(args[0].evaluate(call_env))
+        if test:
+            return args[1].evaluate(call_env)
+        else:
+            return args[2].evaluate(call_env)

@@ -20,10 +20,10 @@ class PLispParser:
         (r'\(', PLispTokens.START_EXPR),
         (r'\)', PLispTokens.END_EXPR),
         (r'[<>=\+\-\*/]', PLispTokens.SYMBOL),
-        (r'[A-z]+[_A-z0-9\?]*', PLispTokens.SYMBOL),
+        (r'[#A-z]+[_A-z0-9\?]*', PLispTokens.SYMBOL),
         (r'[0-9]+', PLispTokens.NUMBER),
         (r'\'', PLispTokens.QUOTE),
-        (r'".*"', PLispTokens.STRING)
+        (r'"[^"]*"', PLispTokens.STRING)
     ]
 
     class ParseError(Exception): pass

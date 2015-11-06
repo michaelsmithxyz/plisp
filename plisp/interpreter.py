@@ -7,17 +7,24 @@ from plisp import types
 class DefaultEnvironment(environment.Environment): 
     def __init__(self):
         self.table = {
+                # Built-in functions
                 '+': builtins.AddFunction(self),
                 '-': builtins.SubtractFunction(self),
                 '*': builtins.MultiplyFunction(self),
                 '/': builtins.DivisionFunction(self),
+                'eq?': builtins.EqualityFunction(self),
                 'type': builtins.TypeFunction(self),
                 'print': builtins.PrintFunction(self),
+                # Type constants
                 'nil': types.List(),
+                '#t': types.Boolean(True),
+                '#f': types.Boolean(False),
+                # Built-in macros
                 'define': builtins.DefineMacro(self),
                 'lambda': builtins.LambdaMacro(self),
                 'fn': builtins.FnMacro(self),
-                'quote': builtins.QuoteMacro(self)
+                'quote': builtins.QuoteMacro(self),
+                'if': builtins.IfMacro(self)
             }
 
 

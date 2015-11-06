@@ -17,6 +17,14 @@ class Atom(Type):
         return str(self)
 
 
+class Boolean(Atom):
+    def __init__(self, value):
+        self.value = bool(value)
+
+    def __bool__(self):
+        return self.value
+
+
 class Number(Atom):
     def __init__(self, value):
         if type(value) in (float, int):
@@ -50,10 +58,13 @@ class Number(Atom):
     def __truediv__(self, other):
         return self.__div__(other)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         if type(other) is Number:
-            return self.value - other.value
+            return self.value == other.value
         raise ValueError("Cannot compare a number to a non-number")
+    
+    def __bool__(self):
+        return self.value != 0
 
 
 class String(Atom):
@@ -73,6 +84,14 @@ class List(Type):
             return self
         sym = self.elements[0]
         return sym.evaluate(env).apply(self.elements[1:], env)
+
+    def __eq__(self, other):
+        if type(other) is List:
+            return self.elements == other.elements
+        return False
+
+    def __bool__(self):
+        return len(self.elements) != 0
 
     def __iter__(self):
         for e in self.elements:
