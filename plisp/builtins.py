@@ -139,4 +139,4 @@ class BangMacro(BuiltinMacro):
         if len(args) == 0:
             raise SyntaxError("! must be of form: ! callable args")
         fn = args[0].evaluate(call_env)
-        return fn(*[e.evaluate(call_env).pytype() for e in args[1:]])
+        return types.to_lisp_type(fn(*[e.evaluate(call_env).pytype() for e in args[1:]]))

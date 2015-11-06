@@ -163,3 +163,16 @@ class Macro(Function):
         for sym, val in zip(self.args_list, args):
             env.set(sym, val)
         return self.expression.evaluate(env)
+
+
+def to_lisp_type(instance):
+    if isinstance(instance, str):
+        return String(instance)
+    elif isinstance(instance, int) or isinstance(instance, float):
+        return Number(instance)
+    elif isinstance(instance, bool):
+        return Boolean(instance)
+    elif isinstance(instance, set) or isinstance(instance, list):
+        instance = list(instance)
+        return List(*[to_lisp_type(e) for e in instance])
+    return instance
