@@ -40,7 +40,6 @@ class EqualityFunction(BuiltinFunction):
         return types.Boolean(args[0] == args[1])
 
 
-
 class TypeFunction(BuiltinFunction):
     def apply(self, args, call_env):
         if len(args) != 1:
@@ -53,6 +52,22 @@ class PrintFunction(BuiltinFunction):
         string = ' '.join([str(a.evaluate(call_env)) for a in args])
         print(string)
         return types.List()
+
+
+class ImportFunction(BuiltinFunction):
+    def apply(self, args, call_env):
+        if len(args) != 1:
+            raise SyntaxError("import must be in form: import name")
+        name = args[0].evaluate(call_env)
+        if type(name) is not types.String:
+            raise SyntaxError("import only accepts a string")
+        try:
+            mod = __import__(name.value)
+        except ImportError as e:
+            if name.value in __builtins__:
+                return __builtins__[name.value]
+            raise
+        return mod
 
 
 # Built-in Macros
@@ -109,3 +124,19 @@ class IfMacro(BuiltinMacro):
             return args[1].evaluate(call_env)
         else:
             return args[2].evaluate(call_env)
+
+
+class DotMacro(BuiltinMacro):
+    def apply(self, args, call_env):
+        if len(args) != 2:
+            raise SyntaxError(". must be of form: . container field")
+        container = args[0].evaluate(call_env)
+        return getattr(container, str(args[1].evaluate(call_env)))
+
+
+class BangMacro(BuiltinMacro):
+    def apply(self, args, call_env):
+        if len(args) == 0:
+            raise SyntaxError("! must be of form: ! callable args")
+        fn = args[0].evaluate(call_env)
+        return fn(*[e.evaluate(call_env).pytype() for e in args[1:]])

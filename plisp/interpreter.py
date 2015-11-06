@@ -15,6 +15,7 @@ class DefaultEnvironment(environment.Environment):
                 'eq?': builtins.EqualityFunction(self),
                 'type': builtins.TypeFunction(self),
                 'print': builtins.PrintFunction(self),
+                'import': builtins.ImportFunction(self),
                 # Type constants
                 'nil': types.List(),
                 '#t': types.Boolean(True),
@@ -24,7 +25,9 @@ class DefaultEnvironment(environment.Environment):
                 'lambda': builtins.LambdaMacro(self),
                 'fn': builtins.FnMacro(self),
                 'quote': builtins.QuoteMacro(self),
-                'if': builtins.IfMacro(self)
+                'if': builtins.IfMacro(self),
+                '.': builtins.DotMacro(self),
+                '!': builtins.BangMacro(self)
             }
 
 

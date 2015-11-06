@@ -10,6 +10,9 @@ class Atom(Type):
     def evaluate(self, env):
         return self
 
+    def pytype(self):
+        return self.value
+
     def __str__(self):
         return str(self.value)
 
@@ -83,7 +86,13 @@ class List(Type):
         if len(self.elements) == 0:
             return self
         sym = self.elements[0]
+        fn = sym.evaluate(env)
+        if not (isinstance(fn, Function) or isinstance(fn, Macro)):
+            raise SyntaxError(str(sym) + " is not callable")
         return sym.evaluate(env).apply(self.elements[1:], env)
+
+    def pytype(self):
+        return [e.pytype() for e in self.elements]
 
     def __eq__(self, other):
         if type(other) is List:
@@ -113,6 +122,9 @@ class Symbol(Type):
         if res is None:
             raise NameError(str(self) + " not found")
         return res
+
+    def pytype(self):
+        return self.name
 
     def __str__(self):
         return str(self.name)
