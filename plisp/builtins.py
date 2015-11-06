@@ -40,6 +40,28 @@ class EqualityFunction(BuiltinFunction):
         return types.Boolean(args[0] == args[1])
 
 
+class FirstFunction(BuiltinFunction):
+    def apply(self, args, call_env):
+        if len(args) != 1:
+            raise Exception("Arity error")
+        tgt = args[0].evaluate(call_env)
+        if not isinstance(tgt, types.List):
+            raise SyntaxError("first only accepts a list")
+        if len(tgt) == 0:
+            return types.List()
+        return tgt.elements[0]
+
+
+class RestFunction(BuiltinFunction):
+    def apply(self, args, call_env):
+        if len(args) != 1:
+            raise Exception("Arity error")
+        tgt = args[0].evaluate(call_env)
+        if not isinstance(tgt, types.List):
+            raise SyntaxError("rest only accepts a list")
+        return types.List(*tgt.elements[1:])
+
+
 class TypeFunction(BuiltinFunction):
     def apply(self, args, call_env):
         if len(args) != 1:
@@ -124,6 +146,14 @@ class IfMacro(BuiltinMacro):
             return args[1].evaluate(call_env)
         else:
             return args[2].evaluate(call_env)
+
+
+class DoMacro(BuiltinMacro):
+    def apply(self, args, call_env):
+        res = types.List()
+        for expr in args:
+            res = expr.evaluate(call_env)
+        return res
 
 
 class DotMacro(BuiltinMacro):

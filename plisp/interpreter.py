@@ -13,6 +13,8 @@ class DefaultEnvironment(environment.Environment):
                 '*': builtins.MultiplyFunction(self),
                 '/': builtins.DivisionFunction(self),
                 'eq?': builtins.EqualityFunction(self),
+                'first': builtins.FirstFunction(self),
+                'rest': builtins.RestFunction(self),
                 'type': builtins.TypeFunction(self),
                 'print': builtins.PrintFunction(self),
                 'import': builtins.ImportFunction(self),
@@ -26,6 +28,7 @@ class DefaultEnvironment(environment.Environment):
                 'fn': builtins.FnMacro(self),
                 'quote': builtins.QuoteMacro(self),
                 'if': builtins.IfMacro(self),
+                'do': builtins.DoMacro(self),
                 '.': builtins.DotMacro(self),
                 '!': builtins.BangMacro(self)
             }
