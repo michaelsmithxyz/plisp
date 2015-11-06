@@ -12,6 +12,7 @@ class PLispTokens(enum.Enum):
     STRING = 4
     QUOTE = 5
     WHITESPACE = 6
+    COMMENT = 7
 
 
 class PLispParser:
@@ -23,7 +24,8 @@ class PLispParser:
         (r'[!\.#A-z]+[_A-z0-9\?]*', PLispTokens.SYMBOL),
         (r'[0-9]+', PLispTokens.NUMBER),
         (r'\'', PLispTokens.QUOTE),
-        (r'"[^"]*"', PLispTokens.STRING)
+        (r'"[^"]*"', PLispTokens.STRING),
+        (r';.*(?:$|\n)', PLispTokens.COMMENT)
     ]
 
     class ParseError(Exception): pass
@@ -33,7 +35,7 @@ class PLispParser:
         self.tokenizer = tokenizer.Tokenizer(self.string, self.tokens)
 
     def get_token(self):
-        return self.tokenizer.consume(lambda t: t.type != PLispTokens.WHITESPACE)
+        return self.tokenizer.consume(lambda t: t.type not in (PLispTokens.WHITESPACE, PLispTokens.COMMENT))
 
     def parse_atom(self, token):
         if token.type is PLispTokens.NUMBER:
