@@ -4,17 +4,18 @@ from plisp import types
 from plisp import environment
 
 
-class ListReduceBuiltin(types.Function):
-    func = lambda x, y: None
+# Built-in functions
 
+class BuiltinFunction(types.Function):
     def __init__(self, env):
         self.env = env
+
+class ListReduceBuiltin(BuiltinFunction):
+    func = lambda x, y: None
 
     def apply(self, args, call_env):
         return reduce(self.__class__.func, [a.evaluate(call_env) for a in args])
 
-
-# Built-in functions
 
 class AddFunction(ListReduceBuiltin):
     func = lambda x, y: x + y
@@ -32,10 +33,7 @@ class DivisionFunction(ListReduceBuiltin):
     func = lambda x, y: x / y
 
 
-class EqualityFunction(types.Function):
-    def __init__(self, env):
-        self.env = env
-
+class EqualityFunction(BuiltinFunction):
     def apply(self, args, call_env):
         if len(args) != 2:
             raise Exception("Arity error")
@@ -43,20 +41,14 @@ class EqualityFunction(types.Function):
 
 
 
-class TypeFunction(types.Function):
-    def __init__(self, env):
-        self.env = env
-
+class TypeFunction(BuiltinFunction):
     def apply(self, args, call_env):
         if len(args) != 1:
             raise SyntaxError("type must be in form: type expression")
         return args[0].evaluate(call_env).__class__
 
 
-class PrintFunction(types.Function):
-    def __init__(self, env):
-        self.env = env
-
+class PrintFunction(BuiltinFunction):
     def apply(self, args, call_env):
         string = ' '.join([str(a.evaluate(call_env)) for a in args])
         print(string)
@@ -65,10 +57,12 @@ class PrintFunction(types.Function):
 
 # Built-in Macros
 
-class DefineMacro(types.Macro):
+class BuiltinMacro(types.Macro):
     def __init__(self, env):
         self.env = env
 
+
+class DefineMacro(BuiltinMacro):
     def apply(self, args, call_env):
         if len(args) != 2 or type(args[0]) is not types.Symbol:
             raise SyntaxError("define must be in form: define name expression")
@@ -77,20 +71,14 @@ class DefineMacro(types.Macro):
         return result
 
 
-class QuoteMacro(types.Macro):
-    def __init__(self, env):
-        self.env = env
-
+class QuoteMacro(BuiltinMacro):
     def apply(self, args, call_env):
         if len(args) == 0:
             return types.List()
         return args[0]
 
 
-class LambdaMacro(types.Macro):
-    def __init__(self, env):
-        self.env = env
-
+class LambdaMacro(BuiltinMacro):
     def apply(self, args, call_env):
         if len(args) != 2 or type(args[0]) is not types.List:
             raise SyntaxError("lambda must be of form: lambda args expression")
@@ -100,10 +88,7 @@ class LambdaMacro(types.Macro):
             return types.Function(args[0], args[1], call_env)
 
 
-class FnMacro(types.Macro):
-    def __init__(self, env):
-        self.env = env
-
+class FnMacro(BuiltinMacro):
     def apply(self, args, call_env):
         if len(args) != 3 or type(args[0]) is not types.Symbol or type(args[1]) is not types.List:
             raise SyntaxError("fn must be of form: fn name args expression")
@@ -115,10 +100,7 @@ class FnMacro(types.Macro):
         return function
 
 
-class IfMacro(types.Macro):
-    def __init__(self, env):
-        self.env = env
-
+class IfMacro(BuiltinMacro):
     def apply(self, args, call_env):
         if len(args) != 3:
             raise SyntaxError("if must be of form: if test then else")
