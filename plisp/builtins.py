@@ -161,7 +161,7 @@ class DotMacro(BuiltinMacro):
         if len(args) != 2:
             raise SyntaxError(". must be of form: . container field")
         container = args[0].evaluate(call_env)
-        return getattr(container, str(args[1].evaluate(call_env)))
+        return types.to_lisp_type(getattr(container, str(args[1].evaluate(call_env))))
 
 
 class BangMacro(BuiltinMacro):
