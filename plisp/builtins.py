@@ -158,6 +158,17 @@ class ListFunction(BuiltinFunction):
         return types.List(*[e.evaluate(call_env) for e in args])
 
 
+class ConsFunction(BuiltinFunction):
+    def apply(self, args, call_env):
+        if len(args) != 2:
+            raise Exception("Arity error")
+        elem = args[0].evaluate(call_env)
+        tgt = args[1].evaluate(call_env)
+        if not isinstance(tgt, types.List):
+            raise SyntaxError("the second argument of cons must be a list")
+        return types.List(elem, *tgt.elements)
+
+
 class FirstFunction(BuiltinFunction):
     def apply(self, args, call_env):
         if len(args) != 1:
@@ -208,13 +219,3 @@ class ImportFunction(BuiltinFunction):
                 return __builtins__[name.value]
             raise
         return mod
-
-
-# Built-in Macros
-
-class BuiltinMacro(types.Macro):
-    def __init__(self, env):
-        self.env = env
-
-
-
