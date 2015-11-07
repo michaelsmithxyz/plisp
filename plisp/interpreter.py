@@ -30,6 +30,7 @@ class DefaultEnvironment(environment.Environment):
                 '/': builtins.DivisionFunction(self),
                 'eq?': builtins.EqualityFunction(self),
                 'list': builtins.ListFunction(self),
+                'cons': builtins.ConsFunction(self),
                 'first': builtins.FirstFunction(self),
                 'rest': builtins.RestFunction(self),
                 'type': builtins.TypeFunction(self),
