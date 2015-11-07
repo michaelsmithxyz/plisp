@@ -27,6 +27,9 @@ class Boolean(Atom):
     def __bool__(self):
         return self.value
 
+    def __str__(self):
+        return "#t" if self.value else "#f"
+
 
 class Number(Atom):
     def __init__(self, value):
@@ -85,11 +88,13 @@ class List(Type):
     def evaluate(self, env):
         if len(self.elements) == 0:
             return self
-        sym = self.elements[0]
-        fn = sym.evaluate(env)
-        if not (isinstance(fn, Function) or isinstance(fn, Macro)):
-            raise SyntaxError(str(sym) + " is not callable")
-        return sym.evaluate(env).apply(self.elements[1:], env)
+        sym = self.elements[0].evaluate(env)
+        if isinstance(sym, Macro):
+            expr = sym.expand(self.elements[1:], env)
+            return expr.evaluate(env)
+        if isinstance(sym, Callable):
+            return sym.apply(self.elements[1:], env)
+        raise SyntaxError(str(sym) + " is not callable")
 
     def pytype(self):
         return [e.pytype() for e in self.elements]
@@ -141,7 +146,12 @@ class Symbol(Type):
         return self.name == other
 
 
-class Function(Type):
+class Callable(Type):
+    def apply(self, args, call_env):
+        raise NotImplementedError("Cannot evaluate abstract callable")
+
+
+class Function(Callable):
     def __init__(self, args_list, expr, env):
         self.args_list = args_list
         self.env = env
@@ -153,15 +163,19 @@ class Function(Type):
             raise Exception("Arity error")
         bindings = zip(self.args_list, args)
         for sym, val in bindings:
-            env.set(sym, val.evaluate(call_env))
+            env.set_symbol(sym, val.evaluate(call_env))
         return self.expression.evaluate(env)
 
 
-class Macro(Function):
-    def apply(self, args, call_env):
-        env = environment.Environment(base=self.env)
+class Macro(Type):
+    def __init__(self, args_list, expr):
+        self.args_list = args_list
+        self.expression = expr
+
+    def expand(self, args, call_env):
+        env = environment.Environment(base=call_env)
         for sym, val in zip(self.args_list, args):
-            env.set(sym, val)
+            env.set_symbol(sym, val)
         return self.expression.evaluate(env)
 
 

@@ -6,6 +6,22 @@ from plisp import types
 
 class DefaultEnvironment(environment.Environment): 
     def __init__(self):
+        self.forms = {
+                'lambda': builtins.LambdaForm(),
+                'define': builtins.DefineForm(),
+                'quote': builtins.QuoteForm(),
+                'backquote': builtins.BackquoteForm(),
+                'unquote': builtins.UnQuoteForm(),
+                'defmacro': builtins.DefMacroForm(),
+                'fn': builtins.FnForm(),
+                'if': builtins.IfForm(),
+                'do': builtins.DoForm(),
+                '.': builtins.DotForm(),
+                '!': builtins.BangForm()
+                }
+
+        self.macros = {}
+
         self.table = {
                 # Built-in functions
                 '+': builtins.AddFunction(self),
@@ -13,6 +29,7 @@ class DefaultEnvironment(environment.Environment):
                 '*': builtins.MultiplyFunction(self),
                 '/': builtins.DivisionFunction(self),
                 'eq?': builtins.EqualityFunction(self),
+                'list': builtins.ListFunction(self),
                 'first': builtins.FirstFunction(self),
                 'rest': builtins.RestFunction(self),
                 'type': builtins.TypeFunction(self),
@@ -22,15 +39,6 @@ class DefaultEnvironment(environment.Environment):
                 'nil': types.List(),
                 '#t': types.Boolean(True),
                 '#f': types.Boolean(False),
-                # Built-in macros
-                'define': builtins.DefineMacro(self),
-                'lambda': builtins.LambdaMacro(self),
-                'fn': builtins.FnMacro(self),
-                'quote': builtins.QuoteMacro(self),
-                'if': builtins.IfMacro(self),
-                'do': builtins.DoMacro(self),
-                '.': builtins.DotMacro(self),
-                '!': builtins.BangMacro(self)
             }
 
 

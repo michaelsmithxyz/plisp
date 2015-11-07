@@ -10,9 +10,11 @@ class PLispTokens(enum.Enum):
     SYMBOL = 2
     NUMBER = 3
     STRING = 4
-    QUOTE = 5
-    WHITESPACE = 6
-    COMMENT = 7
+    QUOTE = 6
+    BACKQUOTE = 7
+    UNQUOTE = 8
+    WHITESPACE = 9
+    COMMENT = 10
 
 
 class PLispParser:
@@ -20,10 +22,12 @@ class PLispParser:
         (r'[\n\t ]+', PLispTokens.WHITESPACE),
         (r'\(', PLispTokens.START_EXPR),
         (r'\)', PLispTokens.END_EXPR),
-        (r'[<>=\+\-\*/]', PLispTokens.SYMBOL),
-        (r'[!\.#A-z]+[_A-z0-9\?]*', PLispTokens.SYMBOL),
         (r'[0-9]+', PLispTokens.NUMBER),
         (r'\'', PLispTokens.QUOTE),
+        (r'`', PLispTokens.BACKQUOTE),
+        (r',', PLispTokens.UNQUOTE),
+        (r'[<>=\+\-\*/]', PLispTokens.SYMBOL),
+        (r'[!\.#A-z]+[_A-z0-9\?]*', PLispTokens.SYMBOL),
         (r'"[^"]*"', PLispTokens.STRING),
         (r';.*(?:$|\n)', PLispTokens.COMMENT)
     ]
@@ -53,6 +57,18 @@ class PLispParser:
             raise self.ParseError("Invalid body for quote")
         return types.List(types.Symbol('quote'), body)
 
+    def parse_backquote(self, token):
+        body = self.parse_expression(self.get_token())
+        if body is None:
+            raise self.ParseError("Invalid body for backquote")
+        return types.List(types.Symbol('backquote'), body)
+    
+    def parse_unquote(self, token):
+        body = self.parse_expression(self.get_token())
+        if body is None:
+            raise self.ParseError("Invalid body for unquote")
+        return types.List(types.Symbol("unquote"), body)
+
     def parse_list(self, token):
         lst = []
         next_token = self.get_token()
@@ -78,6 +94,10 @@ class PLispParser:
             return self.parse_symbol(token)
         elif token.type == PLispTokens.QUOTE:
             return self.parse_quote(token)
+        elif token.type == PLispTokens.BACKQUOTE:
+            return self.parse_backquote(token)
+        elif token.type == PLispTokens.UNQUOTE:
+            return self.parse_unquote(token)
         else:
             raise self.ParseError("Internal Error: Unhandled token type encountered: %s" % token)
 
