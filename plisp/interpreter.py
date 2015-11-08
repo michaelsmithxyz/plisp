@@ -44,18 +44,21 @@ class DefaultEnvironment(environment.Environment):
 
 
 class PLispInterpreter:
+    instance = None
+
     def __init__(self):
-        self.program = None
         self.environment = DefaultEnvironment()
+        PLispInterpreter.instance = self
 
-    def load_file(self, f):
-        self.program = self.f.read()
-
-    def load_string(self, string):
-        self.program = string
-
-    def execute(self):
-        plist_parser = parser.PLispParser(self.program) 
+    def _execute(self, program):
+        plist_parser = parser.PLispParser(program) 
         ast = plist_parser.parse()
         results = [ex.evaluate(self.environment) for ex in ast]
         return results[-1]
+
+    def execute_file(self, f):
+        program = f.read()
+        return self._execute(program)
+
+    def execute_string(self, string):
+        return self._execute(string)
